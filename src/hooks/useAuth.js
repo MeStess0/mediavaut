@@ -50,12 +50,13 @@ export function AuthProvider({ children }) {
     const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) return { error };
 
-    // Insert profile row into users table
-    const { error: profileError } = await supabase
+    // Trigger already created the profile row — just update the username
+    const { error: updateError } = await supabase
       .from("users")
-      .insert({ id: data.user.id, username, email });
+      .update({ username })
+      .eq("id", data.user.id);
 
-    if (profileError) return { error: profileError };
+    if (updateError) return { error: updateError };
     return { error: null };
   };
 
