@@ -49,6 +49,13 @@ export function AuthProvider({ children }) {
   const signUp = async (email, password, username) => {
     const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) return { error };
+
+    // Insert profile row into users table
+    const { error: profileError } = await supabase
+      .from("users")
+      .insert({ id: data.user.id, username, email });
+
+    if (profileError) return { error: profileError };
     return { error: null };
   };
 
