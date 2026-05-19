@@ -50,10 +50,10 @@ Ogni utente ha un **profilo pubblico personalizzabile** in cui può mostrare i p
 
 | Layer | Tecnologia |
 |---|---|
-| Frontend | React + React Router |
-| Styling | CSS + Bootstrap |
-| Backend | Node.js + Express |
-| Database | PostgreSQL |
+| Frontend | React |
+| Styling | CSS + Tailwind CSS |
+| Backend | Node.js |
+| Database |Supabase + PostgreSQL |
 | API Esterne | TMDB, Jikan, Google Books |
 
 ---
