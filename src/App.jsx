@@ -1,7 +1,7 @@
 // src/App.jsx
 // Root component — sets up routing and global providers.
 
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './hooks/useAuth'
 import { ThemeProvider } from './hooks/useTheme'
 import Layout from './components/Layout'
@@ -24,7 +24,7 @@ function ProtectedRoute({ children }) {
 // ── App routes ───────────────────────────────────────────────
 function AppRoutes() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
         <Route element={<Layout />}>
           <Route path="/"                       element={<Home />} />
@@ -43,7 +43,7 @@ function AppRoutes() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   )
 }
 

@@ -1,4 +1,3 @@
-// src/hooks/useAuth.js
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 
@@ -47,16 +46,27 @@ export function AuthProvider({ children }) {
   };
 
   const signUp = async (email, password, username) => {
+    const { data: existing } = await supabase
+      .from("users")
+      .select("username")
+      .eq("username", username)
+      .single();
+
+    if (existing) return { error: { message: "Username already taken" } };
+
     const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) return { error };
 
-    // Trigger already created the profile row — just update the username
-    const { error: updateError } = await supabase
-      .from("users")
-      .update({ username })
-      .eq("id", data.user.id);
+    await new Promise((r) => setTimeout(r, 1000));
 
-    if (updateError) return { error: updateError };
+    const { error: insertError } = await supabase
+      .from("users")
+      .insert({ id: data.user.id, email, username });
+
+    if (insertError) {
+      console.error("Profile insert error:", insertError);
+      return { error: insertError };
+    }
     return { error: null };
   };
 
