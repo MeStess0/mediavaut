@@ -1,68 +1,70 @@
 // src/pages/Home.jsx
-// Home page — shows popular anime, movies, and books fetched from APIs.
-
-import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import MediaCard from '../components/MediaCard'
-import { fetchTopAnime, normalizeAnime } from '../hooks/useJikan'
-import { fetchTrendingMovies, normalizeMovie } from '../hooks/useTMDB'
-import { fetchPopularBooks, normalizeBook } from '../hooks/useGoogleBooks'
-import { useAuth } from '../hooks/useAuth'
-import { useUserLibrary } from '../hooks/useLibrary'
-import { t } from '../lib/i18n'
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import MediaCard from "../components/MediaCard";
+import {
+  fetchSeasonalAnime,
+  fetchTopAnime,
+  normalizeAnime,
+  normalizeManga,
+} from "../hooks/useJikan";
+import {
+  fetchTrendingMovies,
+  fetchTrendingTV,
+  normalizeMovie,
+  normalizeTV,
+} from "../hooks/useTMDB";
+import { useAuth } from "../hooks/useAuth";
+import { useUserLibrary } from "../hooks/useLibrary";
+import { t } from "../lib/i18n";
 
 export default function Home() {
-  const { user }                                = useAuth()
-  const { entries }                             = useUserLibrary(user?.id)
-  const navigate                                = useNavigate()
+  const { user } = useAuth();
+  const { entries } = useUserLibrary(user?.id);
+  const navigate = useNavigate();
 
-  const [anime,   setAnime]   = useState([])
-  const [movies,  setMovies]  = useState([])
-  const [books,   setBooks]   = useState([])
-  const [loading, setLoading] = useState(true)
+  const [anime, setAnime] = useState([]);
+  const [manga, setManga] = useState([]);
+  const [movies, setMovies] = useState([]);
+  const [tv, setTv] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadAll = async () => {
-      setLoading(true)
+      setLoading(true);
       try {
-        const [animeData, movieData, bookData] = await Promise.all([
-          fetchTopAnime(8),
+        const [animeData, movieData, tvData] = await Promise.all([
+          fetchSeasonalAnime(8),
           fetchTrendingMovies(8),
-          fetchPopularBooks('fiction', 8),
-        ])
-        setAnime(animeData.map(normalizeAnime))
-        setMovies(movieData.map(normalizeMovie))
-        setBooks(bookData.map(normalizeBook))
+          fetchTrendingTV(8),
+        ]);
+        setAnime(animeData.map(normalizeAnime));
+        setMovies(movieData.map(normalizeMovie));
+        setTv(tvData.map(normalizeTV));
       } catch (e) {
-        console.error('Home load error:', e)
+        console.error("Home load error:", e);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
-    loadAll()
-  }, [])
+    };
+    loadAll();
+  }, []);
 
-  // Build a map of mediaId → status from user's library for badge display
-  const libraryMap = {}
-  entries.forEach(e => {
-    libraryMap[e.media_id] = e.status
-  })
+  const libraryMap = {};
+  entries.forEach((e) => {
+    libraryMap[e.media_id] = e.status;
+  });
 
-  // In-progress entries for "Continue Watching" section
-  const inProgress = entries
-    .filter(e => e.status === 'watching')
-    .slice(0, 8)
+  const inProgress = entries.filter((e) => e.status === "watching").slice(0, 8);
 
-  if (loading) return <div className="loading-text">{t.loading}</div>
+  if (loading) return <div className="loading-text">{t.loading}</div>;
 
   return (
     <div>
-
-      {/* ── Continue Watching (only when logged in and has entries) ── */}
       {user && inProgress.length > 0 && (
         <Section title={t.recentActivity} link="/library">
           <div className="media-grid">
-            {inProgress.map(entry => (
+            {inProgress.map((entry) => (
               <MediaCard
                 key={entry.id}
                 media={{ ...entry.media, externalId: entry.media.external_id }}
@@ -73,10 +75,9 @@ export default function Home() {
         </Section>
       )}
 
-      {/* ── Popular Anime ── */}
-      <Section title={t.popularAnime} link="/search?type=anime">
+      <Section title="Currently Airing Anime" link="/search?type=anime">
         <div className="media-grid">
-          {anime.map(a => (
+          {anime.map((a) => (
             <MediaCard
               key={a.externalId}
               media={a}
@@ -86,10 +87,9 @@ export default function Home() {
         </div>
       </Section>
 
-      {/* ── Popular Movies ── */}
-      <Section title={t.popularMovies} link="/search?type=film">
+      <Section title="Trending Movies" link="/search?type=film">
         <div className="media-grid">
-          {movies.map(m => (
+          {movies.map((m) => (
             <MediaCard
               key={m.externalId}
               media={m}
@@ -99,37 +99,34 @@ export default function Home() {
         </div>
       </Section>
 
-      {/* ── Popular Books ── */}
-      <Section title={t.popularBooks} link="/search?type=libro">
+      <Section title="Trending TV Series" link="/search?type=serie_tv">
         <div className="media-grid">
-          {books.map(b => (
+          {tv.map((s) => (
             <MediaCard
-              key={b.externalId}
-              media={b}
-              entryStatus={libraryMap[`libro-${b.externalId}`]}
+              key={s.externalId}
+              media={s}
+              entryStatus={libraryMap[`serie_tv-${s.externalId}`]}
             />
           ))}
         </div>
       </Section>
-
     </div>
-  )
+  );
 }
 
-// ── Helper sub-component ──────────────────────────────────────
 function Section({ title, link, children }) {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   return (
     <div className="section-block">
       <div className="section-header">
         <span>{title}</span>
         {link && (
-          <span style={{ cursor: 'pointer' }} onClick={() => navigate(link)}>
+          <span style={{ cursor: "pointer" }} onClick={() => navigate(link)}>
             {t.viewAll}
           </span>
         )}
       </div>
       <div className="section-body">{children}</div>
     </div>
-  )
+  );
 }
